@@ -1,39 +1,89 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::collide_aabb};
 
-use crate::physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY};
+use crate::{
+    animation::{Animation, Animations, Flippable, LoadAnimation},
+    background::GAME_LAYER,
+    enemy::Enemy,
+    physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY},
+};
 
-const PLAYER_SIZE: f32 = 96.0;
+const PLAYER_STAND_ANIMATION: usize = 0;
+const PLAYER_MOVE_ANIMATION: usize = 1;
+const PLAYER_SIZE: f32 = 128.0;
+const PLAYER_INVINCIBILITY: f32 = 3.0;
+const PLAYER_FLASH_FREQUENCY: f32 = 1.0 / 4.0;
 
-const BULLET_SIZE: f32 = 16.0;
+const BULLET_SIZE: f32 = 32.0;
 
 #[derive(Component)]
 pub struct Player {
+    pub damage: u32,
+    health: u32,
     speed: f32,
     aim: Vec2,
+    now: f32,
+    max: f32,
 }
 
-pub fn init(mut commands: Commands) {
+#[derive(Component)]
+pub struct Bullet;
+
+pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn_bundle(SpriteBundle {
             sprite: Sprite {
-                color: Color::RED,
                 custom_size: Some(Vec2::new(PLAYER_SIZE, PLAYER_SIZE)),
                 ..Default::default()
             },
-            transform: Transform::from_xyz(960.0, PLAYER_SIZE / 2.0, 0.0),
+            transform: Transform::from_xyz(
+                960.0,
+                PLAYER_SIZE / 2.0,
+                GAME_LAYER,
+            ),
             ..Default::default()
         })
+        .insert(Animations {
+            animations: vec![
+                Animation {
+                    textures: asset_server
+                        .load_animation("player/stand")
+                        .unwrap(),
+                    ..Default::default()
+                },
+                Animation {
+                    textures: asset_server
+                        .load_animation("player/move")
+                        .unwrap(),
+                    max: 1.0 / 8.0,
+                    ..Default::default()
+                },
+            ],
+            ..Default::default()
+        })
+        .insert(Flippable)
         .insert(Acceleration(Vec2::new(0.0, GRAVITY)))
         .insert(Velocity::default())
         .insert(Body::default())
-        .insert(Player { speed: 1024.0, aim: Vec2::new(1.0, 0.0) });
+        .insert(Player {
+            damage: 0,
+            health: 3,
+            speed: 768.0,
+            aim: Vec2::new(1.0, 0.0),
+            now: PLAYER_INVINCIBILITY,
+            max: PLAYER_INVINCIBILITY,
+        });
 }
 
 pub fn movement(
     input: Res<Input<KeyCode>>,
     mut query: Query<(&mut Velocity, &mut Player, &Body)>,
 ) {
-    let (mut velocity, mut player, body) = query.single_mut();
+    let (mut velocity, mut player, body) =
+        if let Ok(result) = query.get_single_mut() {
+            result
+        } else {
+            return;
+        };
 
     let mut direction = Vec2::ZERO;
 
@@ -68,12 +118,32 @@ pub fn movement(
     }
 }
 
+pub fn animation(mut query: Query<(&mut Animations, &Velocity), With<Player>>) {
+    let (mut animations, velocity) = if let Ok(result) = query.get_single_mut()
+    {
+        result
+    } else {
+        return;
+    };
+
+    if velocity.0.x == 0.0 && animations.current != PLAYER_STAND_ANIMATION {
+        animations.current = PLAYER_STAND_ANIMATION;
+    } else if velocity.0.x != 0.0 && animations.current != PLAYER_MOVE_ANIMATION
+    {
+        animations.current = PLAYER_MOVE_ANIMATION;
+    }
+}
+
 pub fn shooting(
     mut commands: Commands,
     input: Res<Input<KeyCode>>,
     query: Query<(&Transform, &Player)>,
 ) {
-    let (transform, player) = query.single();
+    let (transform, player) = if let Ok(result) = query.get_single() {
+        result
+    } else {
+        return;
+    };
 
     if input.just_pressed(KeyCode::X) {
         commands
@@ -90,7 +160,83 @@ pub fn shooting(
                 ),
                 ..Default::default()
             })
-            .insert(Velocity(player.aim.normalize() * 2048.0))
-            .insert(Cleanup);
+            .insert(Velocity(player.aim.normalize() * 1536.0))
+            .insert(Cleanup)
+            .insert(Bullet);
+    }
+}
+
+pub fn damage(mut commands: Commands, mut query: Query<(Entity, &mut Player)>) {
+    let (entity, mut player) = if let Ok(result) = query.get_single_mut() {
+        result
+    } else {
+        return;
+    };
+
+    if player.damage > 0 && player.now >= player.max {
+        if player.health > player.damage {
+            player.health -= player.damage;
+            player.now = 0.0;
+        } else {
+            commands.entity(entity).despawn();
+        }
+    }
+}
+
+pub fn invincibility(
+    time: Res<Time>,
+    mut query: Query<(&mut Player, &mut Sprite)>,
+) {
+    let (mut player, mut sprite) = if let Ok(result) = query.get_single_mut() {
+        result
+    } else {
+        return;
+    };
+
+    if player.now < player.max {
+        player.now += time.delta_seconds();
+
+        if player.now >= player.max {
+            player.damage = 0;
+            sprite.color.set_a(1.0);
+        } else {
+            let m =
+                player.now % PLAYER_FLASH_FREQUENCY / PLAYER_FLASH_FREQUENCY;
+            if m < 0.5 {
+                sprite.color.set_a(1.0 - m);
+            } else {
+                sprite.color.set_a(m);
+            }
+        }
+    }
+}
+
+pub fn bullet(
+    mut commands: Commands,
+    bullet_query: Query<(Entity, &Transform, &Sprite), With<Bullet>>,
+    mut enemy_query: Query<(Entity, &mut Enemy, &Transform, &Sprite)>,
+) {
+    for (bullet_entity, bullet_transform, bullet_sprite) in bullet_query.iter()
+    {
+        for (enemy_entity, mut enemy, enemy_transform, enemy_sprite) in
+            enemy_query.iter_mut()
+        {
+            if collide_aabb::collide(
+                bullet_transform.translation,
+                bullet_sprite.custom_size.unwrap(),
+                enemy_transform.translation,
+                enemy_sprite.custom_size.unwrap(),
+            )
+            .is_some()
+            {
+                commands.entity(bullet_entity).despawn();
+
+                if enemy.health > 1 {
+                    enemy.health -= 1;
+                } else {
+                    commands.entity(enemy_entity).despawn();
+                }
+            }
+        }
     }
 }
