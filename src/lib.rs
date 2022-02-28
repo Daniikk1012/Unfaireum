@@ -45,7 +45,7 @@ impl Plugin for GamePlugin {
             )
             .add_system(player::animation.after(GameSystem::Velocity))
             .add_system(animation::flip.after(GameSystem::Velocity))
-            .add_system(player::shooting.after(GameSystem::Velocity))
+            .add_system(player::shoot.after(GameSystem::Velocity))
             .add_system(player::damage.after(GameSystem::Velocity))
             .add_system(player::invincibility)
             .add_system_to_stage(CoreStage::PostUpdate, camera::resize);

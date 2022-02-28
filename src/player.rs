@@ -134,9 +134,10 @@ pub fn animation(mut query: Query<(&mut Animations, &Velocity), With<Player>>) {
     }
 }
 
-pub fn shooting(
+pub fn shoot(
     mut commands: Commands,
     input: Res<Input<KeyCode>>,
+    asset_server: Res<AssetServer>,
     query: Query<(&Transform, &Player)>,
 ) {
     let (transform, player) = if let Ok(result) = query.get_single() {
@@ -149,7 +150,6 @@ pub fn shooting(
         commands
             .spawn_bundle(SpriteBundle {
                 sprite: Sprite {
-                    color: Color::BLACK,
                     custom_size: Some(Vec2::new(BULLET_SIZE, BULLET_SIZE)),
                     ..Default::default()
                 },
@@ -157,7 +157,11 @@ pub fn shooting(
                     transform.translation.x,
                     transform.translation.y,
                     transform.translation.z,
-                ),
+                )
+                .with_rotation(Quat::from_rotation_z(
+                    player.aim.angle_between(Vec2::X),
+                )),
+                texture: asset_server.load("bullet.png"),
                 ..Default::default()
             })
             .insert(Velocity(player.aim.normalize() * 1536.0))
