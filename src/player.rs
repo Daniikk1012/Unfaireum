@@ -167,7 +167,7 @@ pub fn shoot(
                     transform.translation.z,
                 )
                 .with_rotation(Quat::from_rotation_z(
-                    player.aim.angle_between(Vec2::X),
+                    player.aim.y.atan2(player.aim.x),
                 )),
                 texture: asset_server.load("bullet.png"),
                 ..Default::default()
