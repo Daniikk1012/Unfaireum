@@ -3,7 +3,7 @@ use bevy::{prelude::*, sprite::collide_aabb};
 use crate::{
     animation::{Animation, Animations, Flippable, LoadAnimation},
     background::GAME_LAYER,
-    enemy::Enemy,
+    enemy::{Enemy, Spawning},
     physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY},
 };
 
@@ -218,7 +218,10 @@ pub fn invincibility(
 pub fn bullet(
     mut commands: Commands,
     bullet_query: Query<(Entity, &Transform, &Sprite), With<Bullet>>,
-    mut enemy_query: Query<(Entity, &mut Enemy, &Transform, &Sprite)>,
+    mut enemy_query: Query<
+        (Entity, &mut Enemy, &Transform, &Sprite),
+        Without<Spawning>,
+    >,
 ) {
     for (bullet_entity, bullet_transform, bullet_sprite) in bullet_query.iter()
     {

@@ -27,7 +27,8 @@ impl Plugin for GamePlugin {
             .add_system(animation::animation)
             .add_system(enemy::prespawn)
             .add_system(enemy::spawn)
-            .add_system(enemy::follow.before(GameSystem::Acceleration))
+            .add_system(enemy::walker.before(GameSystem::Acceleration))
+            .add_system(enemy::shooter.before(GameSystem::Velocity))
             .add_system(player::movement.system().before(GameSystem::Velocity))
             .add_system_set(
                 SystemSet::new()
@@ -40,6 +41,7 @@ impl Plugin for GamePlugin {
                     .with_system(physics::velocity.label(GameSystem::Velocity))
                     .with_system(physics::walls.after(GameSystem::Velocity))
                     .with_system(player::bullet.after(GameSystem::Velocity))
+                    .with_system(enemy::bullet.after(GameSystem::Velocity))
                     .with_system(enemy::damage.after(GameSystem::Velocity))
                     .with_system(physics::cleanup.after(GameSystem::Velocity)),
             )
