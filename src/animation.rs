@@ -65,6 +65,7 @@ pub fn animation(
     mut query: Query<(&mut Animations, &mut Handle<Image>)>,
 ) {
     for (mut animations, mut texture) in query.iter_mut() {
+        let changed = animations.is_changed();
         let current = animations.current;
         let mut animation = &mut animations.animations[current];
         let mut frame = animation.frame;
@@ -78,7 +79,7 @@ pub fn animation(
 
         frame %= animation.textures.len();
 
-        if animation.frame != frame {
+        if changed || animation.frame != frame {
             animation.frame = frame;
             *texture = animation.textures[animation.frame].clone();
         }
