@@ -29,6 +29,7 @@ impl Plugin for GamePlugin {
             .add_system(enemy::spawn)
             .add_system(enemy::walker.before(GameSystem::Acceleration))
             .add_system(enemy::shooter.before(GameSystem::Velocity))
+            .add_system(enemy::jumper.before(GameSystem::Velocity))
             .add_system(player::movement.system().before(GameSystem::Velocity))
             .add_system_set(
                 SystemSet::new()

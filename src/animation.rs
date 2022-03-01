@@ -38,6 +38,7 @@ pub struct Animation {
     pub textures: Vec<Handle<Image>>,
     pub now: f32,
     pub max: f32,
+    pub next: Option<usize>,
 }
 
 impl Default for Animation {
@@ -47,6 +48,7 @@ impl Default for Animation {
             textures: Default::default(),
             now: Default::default(),
             max: 1.0,
+            next: Default::default(),
         }
     }
 }
@@ -77,12 +79,27 @@ pub fn animation(
             animation.now -= animation.max;
         }
 
-        frame %= animation.textures.len();
+        if let Some(next) = animation.next {
+            if frame >= animation.textures.len() {
+                animations.current = next;
+                let current = animations.current;
+                let mut animation = &mut animations.animations[current];
+                animation.frame = 0;
+                animation.now = 0.0;
+                *texture = animation.textures[animation.frame].clone();
+            } else {
+                animation.frame = frame;
+                *texture = animation.textures[animation.frame].clone();
+            }
+        } else {
+            frame %= animation.textures.len();
 
-        if changed || animation.frame != frame {
-            animation.frame = frame;
-            *texture = animation.textures[animation.frame].clone();
+            if changed || animation.frame != frame {
+                animation.frame = frame;
+                *texture = animation.textures[animation.frame].clone();
+            }
         }
+
     }
 }
 

@@ -2,16 +2,16 @@ use bevy::{prelude::*, sprite::collide_aabb};
 use rand::Rng;
 
 use crate::{
-    animation::Flippable,
+    animation::{Animation, Animations, Flippable, LoadAnimation},
     background::GAME_LAYER,
     camera::GameCamera,
     physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY},
     player::Player,
 };
 
+const ENEMY_JUMPER_FALL_ANIMATION: usize = 0;
+const ENEMY_JUMPER_JUMP_ANIMATION: usize = 1;
 const ENEMY_SIZE: f32 = 128.0;
-
-const BULLET_SIZE: f32 = 32.0;
 
 pub struct SpawnInterval {
     now: f32,
@@ -36,6 +36,12 @@ pub struct Shooter {
     bullet_speed: f32,
     now: f32,
     max: f32,
+}
+
+#[derive(Component)]
+pub struct Jumper {
+    impulse: f32,
+    speed: f32,
 }
 
 #[derive(Component)]
@@ -71,8 +77,8 @@ pub fn prespawn(
     spawn_interval.now += time.delta_seconds();
 
     while spawn_interval.now >= spawn_interval.max {
-        match rand::thread_rng().gen_range(1..=10) {
-            1..=9 => {
+        match rand::thread_rng().gen_range(1..=20) {
+            1..=15 => {
                 commands
                     .spawn_bundle(SpriteBundle {
                         sprite: Sprite {
@@ -100,7 +106,7 @@ pub fn prespawn(
                     .insert(Enemy { health: 1 })
                     .insert(Walker { acceleration: 768.0 });
             }
-            10 => {
+            16..=19 => {
                 commands
                     .spawn_bundle(SpriteBundle {
                         sprite: Sprite {
@@ -132,6 +138,53 @@ pub fn prespawn(
                         now: 0.0,
                         max: 2.0,
                     });
+            }
+            20 => {
+                commands
+                    .spawn_bundle(SpriteBundle {
+                        sprite: Sprite {
+                            color: Color::rgba(1.0, 1.0, 1.0, 0.0),
+                            custom_size: Some(Vec2::new(
+                                ENEMY_SIZE,
+                                ENEMY_SIZE * 1.5,
+                            )),
+                            ..Default::default()
+                        },
+                        transform: Transform::from_xyz(
+                            rand::thread_rng().gen_range(
+                                camera_bounds.left + ENEMY_SIZE
+                                    ..camera_bounds.right - ENEMY_SIZE,
+                            ),
+                            rand::thread_rng().gen_range(
+                                camera_bounds.bottom + ENEMY_SIZE
+                                    ..camera_bounds.top - ENEMY_SIZE,
+                            ),
+                            GAME_LAYER,
+                        ),
+                        ..Default::default()
+                    })
+                    .insert(Animations {
+                        animations: vec![
+                            Animation {
+                                textures: asset_server
+                                    .load_animation("enemy/jumper/fall")
+                                    .unwrap(),
+                                ..Default::default()
+                            },
+                            Animation {
+                                textures: asset_server
+                                    .load_animation("enemy/jumper/jump")
+                                    .unwrap(),
+                                max: 1.0 / 10.0,
+                                next: Some(ENEMY_JUMPER_FALL_ANIMATION),
+                                ..Default::default()
+                            },
+                        ],
+                        ..Default::default()
+                    })
+                    .insert(Spawning { now: 0.0, max: 1.0 })
+                    .insert(Enemy { health: 3 })
+                    .insert(Jumper { impulse: 2560.0, speed: 512.0 });
             }
             _ => unreachable!(),
         }
@@ -224,6 +277,52 @@ pub fn shooter(
                 .insert(Cleanup)
                 .insert(Bullet);
             shooter.now -= shooter.max;
+        }
+    }
+}
+
+pub fn jumper(
+    camera_query: Query<
+        (&Transform, &OrthographicProjection),
+        With<GameCamera>,
+    >,
+    mut enemy_query: Query<(
+        &mut Velocity,
+        &mut Animations,
+        &Transform,
+        &Body,
+        &Jumper,
+    )>,
+) {
+    let (camera_transform, projection) = camera_query.single();
+
+    let camera_bounds = Rect {
+        left: camera_transform.translation.x + projection.left,
+        bottom: camera_transform.translation.y + projection.bottom,
+        right: camera_transform.translation.x + projection.right,
+        top: camera_transform.translation.y + projection.top,
+    };
+
+    for (mut velocity, mut animations, enemy_transform, body, jumper) in
+        enemy_query.iter_mut()
+    {
+        if velocity.0.x == 0.0 {
+            if enemy_transform.translation.x - camera_bounds.left
+                < camera_bounds.right - enemy_transform.translation.x
+            {
+                velocity.0.x = jumper.speed;
+            } else {
+                velocity.0.x = -jumper.speed;
+            }
+        }
+
+        if body.bottom {
+            velocity.0.y = jumper.impulse;
+            animations.current = ENEMY_JUMPER_JUMP_ANIMATION;
+            let current = animations.current;
+            let mut animation = &mut animations.animations[current];
+            animation.frame = 0;
+            animation.now = 0.0;
         }
     }
 }
