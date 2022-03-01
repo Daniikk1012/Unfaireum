@@ -15,6 +15,7 @@ const BULLET_SIZE: f32 = 32.0;
 
 pub struct SpawnInterval {
     now: f32,
+    min: f32,
     max: f32,
 }
 
@@ -47,7 +48,7 @@ pub struct Enemy {
 
 impl Default for SpawnInterval {
     fn default() -> Self {
-        SpawnInterval { now: 0.0, max: 7.5 }
+        SpawnInterval { now: 0.0, min: 0.5, max: 7.5 }
     }
 }
 
@@ -136,7 +137,8 @@ pub fn prespawn(
         }
 
         spawn_interval.now -= spawn_interval.max;
-        spawn_interval.max *= 0.95;
+        spawn_interval.max =
+            (spawn_interval.max * 0.975).max(spawn_interval.min);
     }
 }
 
