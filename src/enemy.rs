@@ -209,7 +209,7 @@ pub fn shooter(
             commands
                 .spawn_bundle(SpriteBundle {
                     sprite: Sprite {
-                        custom_size: Some(Vec2::new(BULLET_SIZE, BULLET_SIZE)),
+                        custom_size: Some(Vec2::new(64.0, 28.0)),
                         ..Default::default()
                     },
                     transform: enemy_transform.clone(),
