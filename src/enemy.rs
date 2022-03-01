@@ -230,7 +230,7 @@ pub fn shooter(
 
 pub fn damage(
     mut player_query: Query<(&mut Player, &Transform, &Sprite)>,
-    enemy_query: Query<(&Transform, &Sprite), With<Enemy>>,
+    enemy_query: Query<(&Transform, &Sprite), (With<Enemy>, Without<Spawning>)>,
 ) {
     let (mut player, player_transform, player_sprite) =
         if let Ok(result) = player_query.get_single_mut() {
