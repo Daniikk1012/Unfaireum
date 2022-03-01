@@ -21,6 +21,7 @@ pub struct Player {
     health: u32,
     speed: f32,
     aim: Vec2,
+    direction: f32,
     now: f32,
     max: f32,
 }
@@ -69,6 +70,7 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
             health: 3,
             speed: 768.0,
             aim: Vec2::new(1.0, 0.0),
+            direction: 1.0,
             now: PLAYER_INVINCIBILITY,
             max: PLAYER_INVINCIBILITY,
         });
@@ -107,6 +109,12 @@ pub fn movement(
 
     if direction != Vec2::ZERO {
         player.aim.x = direction.x;
+    } else {
+        player.aim.x = player.direction;
+    }
+
+    if direction.x != 0.0 {
+        player.direction = direction.x;
     }
 
     player.aim.y = direction.y;
