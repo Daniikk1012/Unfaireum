@@ -7,6 +7,8 @@ use crate::{
     physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY},
 };
 
+pub const PLAYER_HEALTH_MAX: u32 = 3;
+
 const PLAYER_STAND_ANIMATION: usize = 0;
 const PLAYER_MOVE_ANIMATION: usize = 1;
 const PLAYER_SIZE: f32 = 128.0;
@@ -18,7 +20,7 @@ const BULLET_SIZE: f32 = 32.0;
 #[derive(Component)]
 pub struct Player {
     pub damage: u32,
-    health: u32,
+    pub health: u32,
     speed: f32,
     aim: Vec2,
     direction: f32,
@@ -63,7 +65,7 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Body::default())
         .insert(Player {
             damage: 0,
-            health: 3,
+            health: PLAYER_HEALTH_MAX,
             speed: 768.0,
             aim: Vec2::new(1.0, 0.0),
             direction: 1.0,

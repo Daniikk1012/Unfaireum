@@ -1,4 +1,4 @@
-use bevy::{core::FixedTimestep, prelude::*};
+use bevy::{core::FixedTimestep, prelude::*, ui::UiSystem};
 use enemy::SpawnInterval;
 use physics::TIME_STEP;
 
@@ -10,6 +10,7 @@ mod camera;
 mod enemy;
 mod physics;
 mod player;
+mod ui;
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash, SystemLabel)]
 enum GameSystem {
@@ -22,6 +23,7 @@ impl Plugin for GamePlugin {
         app.add_startup_system(background::init)
             .add_startup_system(camera::init)
             .add_startup_system(player::init)
+            .add_startup_system(ui::init)
             .init_resource::<SpawnInterval>()
             .add_system(background::resize)
             .add_system(animation::animation)
@@ -51,6 +53,11 @@ impl Plugin for GamePlugin {
             .add_system(player::shoot.after(GameSystem::Velocity))
             .add_system(player::damage.after(GameSystem::Velocity))
             .add_system(player::invincibility)
+            .add_system(ui::health)
+            .add_system_to_stage(
+                CoreStage::PostUpdate,
+                ui::resize.before(UiSystem::Flex),
+            )
             .add_system_to_stage(CoreStage::PostUpdate, camera::resize);
     }
 }
