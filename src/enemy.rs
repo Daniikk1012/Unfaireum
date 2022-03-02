@@ -167,14 +167,12 @@ pub fn prespawn(
                         animations: vec![
                             Animation {
                                 textures: asset_server
-                                    .load_animation("enemy/jumper/fall")
-                                    .unwrap(),
+                                    .load_animation("enemy/jumper/fall", 1),
                                 ..Default::default()
                             },
                             Animation {
                                 textures: asset_server
-                                    .load_animation("enemy/jumper/jump")
-                                    .unwrap(),
+                                    .load_animation("enemy/jumper/jump", 3),
                                 max: 1.0 / 10.0,
                                 next: Some(ENEMY_JUMPER_FALL_ANIMATION),
                                 ..Default::default()

@@ -1,9 +1,6 @@
 use std::path::Path;
 
-use bevy::{
-    asset::{AssetServerError, HandleId},
-    prelude::*,
-};
+use bevy::prelude::*;
 
 use crate::physics::Velocity;
 
@@ -11,25 +8,24 @@ pub trait LoadAnimation {
     fn load_animation<P: AsRef<Path>>(
         &self,
         path: P,
-    ) -> Result<Vec<Handle<Image>>, AssetServerError>;
+        len: usize,
+    ) -> Vec<Handle<Image>>;
 }
 
 impl LoadAnimation for AssetServer {
     fn load_animation<P: AsRef<Path>>(
         &self,
         path: P,
-    ) -> Result<Vec<Handle<Image>>, AssetServerError> {
-        let handles = self.load_folder(&path)?;
+        len: usize,
+    ) -> Vec<Handle<Image>> {
+        let mut result = Vec::with_capacity(len);
 
-        let mut result = Vec::with_capacity(handles.len());
-
-        for index in 0..handles.len() {
-            result.push(self.get_handle(HandleId::AssetPathId(
-                path.as_ref().join(format!("{}.png", index)).into(),
-            )));
+        for index in 0..len {
+            result
+                .push(self.load(path.as_ref().join(format!("{}.png", index))));
         }
 
-        Ok(result)
+        result
     }
 }
 
@@ -99,7 +95,6 @@ pub fn animation(
                 *texture = animation.textures[animation.frame].clone();
             }
         }
-
     }
 }
 

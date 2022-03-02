@@ -46,15 +46,11 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
         .insert(Animations {
             animations: vec![
                 Animation {
-                    textures: asset_server
-                        .load_animation("player/stand")
-                        .unwrap(),
+                    textures: asset_server.load_animation("player/stand", 1),
                     ..Default::default()
                 },
                 Animation {
-                    textures: asset_server
-                        .load_animation("player/move")
-                        .unwrap(),
+                    textures: asset_server.load_animation("player/move", 2),
                     max: 1.0 / 8.0,
                     ..Default::default()
                 },
