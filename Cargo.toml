@@ -14,4 +14,5 @@ bevy = { version = "0.6", default-features = false, features = [
   "filesystem_watcher",
 ] }
 bevy_kira_audio = { version = "0.8", features = ["wav"] }
+bevy-web-resizer = "0.1.0"
 rand = "0.8"
