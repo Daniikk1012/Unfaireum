@@ -5,7 +5,7 @@ use crate::GameState;
 
 use super::{
     animation::{Animation, Animations, Flippable, LoadAnimation},
-    enemy::{Enemy, Spawning, Score},
+    enemy::{Enemy, Score, Spawning},
     entity::{GameEntity, GAME_LAYER},
     physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY},
 };
@@ -79,7 +79,8 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 pub fn movement(
-    input: Res<Input<KeyCode>>,
+    mouse_input: Res<Input<MouseButton>>,
+    keyboard_input: Res<Input<KeyCode>>,
     audio: Res<Audio>,
     asset_server: Res<AssetServer>,
     mut query: Query<(&mut Velocity, &mut Player, &Body)>,
@@ -93,19 +94,26 @@ pub fn movement(
 
     let mut direction = Vec2::ZERO;
 
-    if input.pressed(KeyCode::A) || input.pressed(KeyCode::Left) {
+    if keyboard_input.pressed(KeyCode::A)
+        || keyboard_input.pressed(KeyCode::Left)
+    {
         direction.x -= 1.0;
     }
 
-    if input.pressed(KeyCode::S) || input.pressed(KeyCode::Down) {
+    if keyboard_input.pressed(KeyCode::S)
+        || keyboard_input.pressed(KeyCode::Down)
+    {
         direction.y -= 1.0;
     }
 
-    if input.pressed(KeyCode::D) || input.pressed(KeyCode::Right) {
+    if keyboard_input.pressed(KeyCode::D)
+        || keyboard_input.pressed(KeyCode::Right)
+    {
         direction.x += 1.0;
     }
 
-    if input.pressed(KeyCode::W) || input.pressed(KeyCode::Up) {
+    if keyboard_input.pressed(KeyCode::W) || keyboard_input.pressed(KeyCode::Up)
+    {
         direction.y += 1.0;
     }
 
@@ -123,10 +131,14 @@ pub fn movement(
 
     player.aim.y = direction.y;
 
-    if input.pressed(KeyCode::Z) && body.bottom {
+    let jump_pressed = mouse_input.pressed(MouseButton::Right)
+        || keyboard_input.pressed(KeyCode::Space)
+        || keyboard_input.pressed(KeyCode::Z);
+
+    if jump_pressed && body.bottom {
         audio.play(asset_server.load("jump.wav"));
         velocity.0.y = 2048.0;
-    } else if !input.pressed(KeyCode::Z) && !body.bottom && velocity.0.y > 0.0 {
+    } else if !jump_pressed && !body.bottom && velocity.0.y > 0.0 {
         velocity.0.y = 0.0;
     }
 }
@@ -149,7 +161,8 @@ pub fn animation(mut query: Query<(&mut Animations, &Velocity), With<Player>>) {
 
 pub fn shoot(
     mut commands: Commands,
-    input: Res<Input<KeyCode>>,
+    mouse_input: Res<Input<MouseButton>>,
+    keyboard_input: Res<Input<KeyCode>>,
     audio: Res<Audio>,
     asset_server: Res<AssetServer>,
     query: Query<(&Transform, &Player)>,
@@ -160,7 +173,9 @@ pub fn shoot(
         return;
     };
 
-    if input.just_pressed(KeyCode::X) {
+    if mouse_input.just_pressed(MouseButton::Left)
+        || keyboard_input.just_pressed(KeyCode::X)
+    {
         audio.play(asset_server.load("shoot.wav"));
         commands
             .spawn_bundle(SpriteBundle {
