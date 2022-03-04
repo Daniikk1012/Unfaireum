@@ -1,10 +1,11 @@
 use bevy::{prelude::*, sprite::collide_aabb};
 use rand::Rng;
 
-use crate::{
+use crate::plugin::camera::GameCamera;
+
+use super::{
     animation::{Animation, Animations, Flippable, LoadAnimation},
-    background::GAME_LAYER,
-    camera::GameCamera,
+    entity::{GameEntity, GAME_LAYER},
     physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY},
     player::Player,
 };
@@ -52,10 +53,8 @@ pub struct Enemy {
     pub health: u32,
 }
 
-impl Default for SpawnInterval {
-    fn default() -> Self {
-        SpawnInterval { now: 0.0, min: 0.5, max: 7.5 }
-    }
+pub fn init(mut commands: Commands) {
+    commands.insert_resource(SpawnInterval { now: 0.0, min: 0.5, max: 7.5 });
 }
 
 pub fn prespawn(
@@ -102,6 +101,7 @@ pub fn prespawn(
                         texture: asset_server.load("enemy/walker/move.png"),
                         ..Default::default()
                     })
+                    .insert(GameEntity)
                     .insert(Spawning { now: 0.0, max: 1.0 })
                     .insert(Enemy { health: 1 })
                     .insert(Walker { acceleration: 768.0 });
@@ -130,6 +130,7 @@ pub fn prespawn(
                         texture: asset_server.load("enemy/shooter/move.png"),
                         ..Default::default()
                     })
+                    .insert(GameEntity)
                     .insert(Spawning { now: 0.0, max: 1.5 })
                     .insert(Enemy { health: 2 })
                     .insert(Shooter {
@@ -163,6 +164,7 @@ pub fn prespawn(
                         ),
                         ..Default::default()
                     })
+                    .insert(GameEntity)
                     .insert(Animations {
                         animations: vec![
                             Animation {
@@ -267,6 +269,7 @@ pub fn shooter(
                     texture: asset_server.load("enemy/shooter/bullet.png"),
                     ..Default::default()
                 })
+                .insert(GameEntity)
                 .insert(Flippable)
                 .insert(Velocity(Vec2::new(
                     velocity.0.x.signum() * shooter.bullet_speed,

@@ -1,9 +1,11 @@
 use bevy::{prelude::*, sprite::collide_aabb};
 
-use crate::{
+use crate::GameState;
+
+use super::{
     animation::{Animation, Animations, Flippable, LoadAnimation},
-    background::GAME_LAYER,
     enemy::{Enemy, Spawning},
+    entity::{GameEntity, GAME_LAYER},
     physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY},
 };
 
@@ -45,6 +47,7 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
             ),
             ..Default::default()
         })
+        .insert(GameEntity)
         .insert(Animations {
             animations: vec![
                 Animation {
@@ -170,13 +173,18 @@ pub fn shoot(
                 texture: asset_server.load("bullet.png"),
                 ..Default::default()
             })
+            .insert(GameEntity)
             .insert(Velocity(player.aim.normalize() * 1536.0))
             .insert(Cleanup)
             .insert(Bullet);
     }
 }
 
-pub fn damage(mut commands: Commands, mut query: Query<(Entity, &mut Player)>) {
+pub fn damage(
+    mut commands: Commands,
+    mut state: ResMut<State<GameState>>,
+    mut query: Query<(Entity, &mut Player)>,
+) {
     let (entity, mut player) = if let Ok(result) = query.get_single_mut() {
         result
     } else {
@@ -188,6 +196,7 @@ pub fn damage(mut commands: Commands, mut query: Query<(Entity, &mut Player)>) {
             player.health -= player.damage;
             player.now = 0.0;
         } else {
+            state.push(GameState::GameOver).unwrap();
             commands.entity(entity).despawn();
         }
     }

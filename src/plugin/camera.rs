@@ -9,9 +9,6 @@ pub struct CameraSize(Vec2);
 #[derive(Component)]
 pub struct GameCamera;
 
-#[derive(Component)]
-pub struct UiCamera;
-
 pub fn init(mut commands: Commands) {
     commands
         .spawn_bundle({
@@ -25,17 +22,7 @@ pub fn init(mut commands: Commands) {
         .insert(CameraSize(Vec2::new(1920.0, 1080.0)))
         .insert(GameCamera);
 
-    commands
-        .spawn_bundle({
-            let mut bundle = UiCameraBundle::default();
-            bundle.orthographic_projection.scaling_mode = ScalingMode::None;
-            bundle.orthographic_projection.window_origin =
-                WindowOrigin::BottomLeft;
-
-            bundle
-        })
-        .insert(CameraSize(Vec2::new(1920.0, 1080.0)))
-        .insert(UiCamera);
+    commands.spawn_bundle(UiCameraBundle::default());
 }
 
 pub fn resize(

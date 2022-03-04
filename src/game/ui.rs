@@ -1,14 +1,11 @@
 use bevy::prelude::*;
 
-use crate::{
-    camera::UiCamera,
+use super::{
+    entity::GameEntity,
     player::{Player, PLAYER_HEALTH_MAX},
 };
 
 const HEALTH_SIZE: f32 = 64.0;
-
-#[derive(Component)]
-pub struct RootNode;
 
 #[derive(Component)]
 pub struct HealthIndex(u32);
@@ -21,12 +18,13 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
                 flex_direction: FlexDirection::Row,
                 align_items: AlignItems::FlexStart,
                 justify_content: JustifyContent::FlexStart,
+                size: Size::new(Val::Percent(100.0), Val::Percent(100.0)),
                 ..Default::default()
             },
             color: Color::NONE.into(),
             ..Default::default()
         })
-        .insert(RootNode)
+        .insert(GameEntity)
         .with_children(|children| {
             for index in 0..PLAYER_HEALTH_MAX {
                 children
@@ -44,31 +42,6 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
                     .insert(HealthIndex(index));
             }
         });
-}
-
-pub fn resize(
-    camera_query: Query<(&Transform, &OrthographicProjection), With<UiCamera>>,
-    mut node_query: Query<&mut Style, With<RootNode>>,
-) {
-    let (camera_transform, projection) = camera_query.single();
-
-    let camera_bounds = Rect {
-        left: camera_transform.translation.x + projection.left,
-        bottom: camera_transform.translation.y + projection.bottom,
-        right: camera_transform.translation.x + projection.right,
-        top: camera_transform.translation.y + projection.top,
-    };
-
-    let size = Size::new(
-        Val::Px(camera_bounds.right - camera_bounds.left),
-        Val::Px(camera_bounds.top - camera_bounds.bottom),
-    );
-
-    let mut style = node_query.single_mut();
-
-    if style.size != size {
-        style.size = size;
-    }
 }
 
 pub fn health(

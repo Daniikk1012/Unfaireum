@@ -2,7 +2,7 @@ use std::path::Path;
 
 use bevy::prelude::*;
 
-use crate::physics::Velocity;
+use super::physics::Velocity;
 
 pub trait LoadAnimation {
     fn load_animation<P: AsRef<Path>>(

@@ -1,6 +1,6 @@
 use bevy::prelude::*;
-use unfaireum::GamePlugin;
+use unfaireum::UnfaireumPlugins;
 
 fn main() {
-    App::new().add_plugins(DefaultPlugins).add_plugin(GamePlugin).run();
+    App::new().add_plugins(DefaultPlugins).add_plugins(UnfaireumPlugins).run();
 }

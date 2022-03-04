@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::camera::GameCamera;
+use crate::plugin::camera::GameCamera;
 
 pub const TIME_STEP: f32 = 1.0 / 60.0;
 pub const GRAVITY: f32 = -4096.0;

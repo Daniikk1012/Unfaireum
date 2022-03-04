@@ -1,9 +1,8 @@
 use bevy::prelude::*;
 
-use crate::camera::GameCamera;
+use crate::plugin::camera::GameCamera;
 
-pub const BACKGROUND_LAYER: f32 = 0.0;
-pub const GAME_LAYER: f32 = 1.0;
+use super::entity::{GameEntity, BACKGROUND_LAYER};
 
 #[derive(Component)]
 pub struct Background {
@@ -23,6 +22,7 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
             texture: asset_server.load("background.png"),
             ..Default::default()
         })
+        .insert(GameEntity)
         .insert(Background { min_size });
 }
 
