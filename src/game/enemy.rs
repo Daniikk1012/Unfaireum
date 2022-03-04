@@ -1,4 +1,5 @@
 use bevy::{prelude::*, sprite::collide_aabb};
+use bevy_kira_audio::Audio;
 use rand::Rng;
 
 use crate::plugin::camera::GameCamera;
@@ -286,6 +287,8 @@ pub fn shooter(
 }
 
 pub fn jumper(
+    audio: Res<Audio>,
+    asset_server: Res<AssetServer>,
     camera_query: Query<
         (&Transform, &OrthographicProjection),
         With<GameCamera>,
@@ -321,6 +324,7 @@ pub fn jumper(
         }
 
         if body.bottom {
+            audio.play(asset_server.load("spring.wav"));
             velocity.0.y = jumper.impulse;
             animations.current = ENEMY_JUMPER_JUMP_ANIMATION;
             let current = animations.current;

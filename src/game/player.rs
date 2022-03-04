@@ -1,4 +1,5 @@
 use bevy::{prelude::*, sprite::collide_aabb};
+use bevy_kira_audio::Audio;
 
 use crate::GameState;
 
@@ -79,6 +80,8 @@ pub fn init(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 pub fn movement(
     input: Res<Input<KeyCode>>,
+    audio: Res<Audio>,
+    asset_server: Res<AssetServer>,
     mut query: Query<(&mut Velocity, &mut Player, &Body)>,
 ) {
     let (mut velocity, mut player, body) =
@@ -121,6 +124,7 @@ pub fn movement(
     player.aim.y = direction.y;
 
     if input.pressed(KeyCode::Z) && body.bottom {
+        audio.play(asset_server.load("jump.wav"));
         velocity.0.y = 2048.0;
     } else if !input.pressed(KeyCode::Z) && !body.bottom && velocity.0.y > 0.0 {
         velocity.0.y = 0.0;
@@ -146,6 +150,7 @@ pub fn animation(mut query: Query<(&mut Animations, &Velocity), With<Player>>) {
 pub fn shoot(
     mut commands: Commands,
     input: Res<Input<KeyCode>>,
+    audio: Res<Audio>,
     asset_server: Res<AssetServer>,
     query: Query<(&Transform, &Player)>,
 ) {
@@ -156,6 +161,7 @@ pub fn shoot(
     };
 
     if input.just_pressed(KeyCode::X) {
+        audio.play(asset_server.load("shoot.wav"));
         commands
             .spawn_bundle(SpriteBundle {
                 sprite: Sprite {
@@ -182,6 +188,8 @@ pub fn shoot(
 
 pub fn damage(
     mut commands: Commands,
+    audio: Res<Audio>,
+    asset_server: Res<AssetServer>,
     mut state: ResMut<State<GameState>>,
     mut query: Query<(Entity, &mut Player)>,
 ) {
@@ -192,6 +200,7 @@ pub fn damage(
     };
 
     if player.damage > 0 && player.now >= player.max {
+        audio.play(asset_server.load("damage.wav"));
         if player.health > player.damage {
             player.health -= player.damage;
             player.now = 0.0;
@@ -233,6 +242,8 @@ pub fn invincibility(
 pub fn bullet(
     mut commands: Commands,
     mut score: ResMut<Score>,
+    audio: Res<Audio>,
+    asset_server: Res<AssetServer>,
     bullet_query: Query<(Entity, &Transform, &Sprite), With<Bullet>>,
     mut enemy_query: Query<
         (Entity, &mut Enemy, &Transform, &Sprite),
@@ -255,8 +266,10 @@ pub fn bullet(
                 commands.entity(bullet_entity).despawn();
 
                 if enemy.health > 1 {
+                    audio.play(asset_server.load("hit.wav"));
                     enemy.health -= 1;
                 } else {
+                    audio.play(asset_server.load("kill.wav"));
                     score.0 += 1;
                     commands.entity(enemy_entity).despawn();
                 }
