@@ -3002,7 +3002,7 @@ checksum = "c74c96594835e10fa545e2a51e8709f30b173a092bfd6036ef2cec53376244f3"
 
 [[package]]
 name = "unfaireum"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bevy",
  "bevy-web-resizer",
