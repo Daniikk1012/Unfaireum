@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <script>
+      (function () {
+        const audioContextList = [];
+        const userInputEventNames = [
+            'click', 'contextmenu', 'auxclick', 'dblclick', 'mousedown',
+            'mouseup', 'pointerup', 'touchend', 'keydown', 'keyup'
+        ];
+        self.AudioContext = new Proxy(self.AudioContext, {
+          construct(target, args) {
+            const result = new target(...args);
+            audioContextList.push(result);
+            return result;
+          }
+        });
+        function resumeAllContexts(event) {
+          let count = 0;
+          audioContextList.forEach(context => {
+            if (context.state !== 'running') {
+              context.resume()
+            } else {
+              count++;
+            }
+          });
+          if (count == audioContextList.length) {
+            userInputEventNames.forEach(eventName => {
+              document.removeEventListener(eventName, resumeAllContexts);
+            });
+          }
+        }
+        userInputEventNames.forEach(eventName => {
+          document.addEventListener(eventName, resumeAllContexts);
+        });
+      })();
+    </script>
+    <script type="module">
+      import init from './unfaireum.js'
+      init()
+    </script>
+  </head>
+  <body style="margin: 0px; overflow: hidden;">
+  </body>
+</html>
