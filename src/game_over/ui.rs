@@ -1,10 +1,8 @@
 use bevy::prelude::*;
 
-use crate::GameState;
+use crate::{GameState, plugin::FONT};
 
 use super::entity::GameOverEntity;
-
-const FONT: &'static str = "Montserrat-Regular.ttf";
 
 const BUTTON_UP_COLOR: Color = Color::rgb(0.85, 0.85, 0.85);
 

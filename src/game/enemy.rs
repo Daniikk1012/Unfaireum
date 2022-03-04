@@ -20,6 +20,8 @@ pub struct SpawnInterval {
     max: f32,
 }
 
+pub struct Score(pub u32);
+
 #[derive(Component)]
 pub struct Spawning {
     now: f32,
@@ -55,6 +57,7 @@ pub struct Enemy {
 
 pub fn init(mut commands: Commands) {
     commands.insert_resource(SpawnInterval { now: 0.0, min: 0.5, max: 7.5 });
+    commands.insert_resource(Score(0));
 }
 
 pub fn prespawn(

@@ -2,6 +2,8 @@ use bevy::prelude::*;
 
 use crate::GameState;
 
+pub const FONT: &'static str = "Montserrat-Regular.ttf";
+
 pub struct MainPlugin;
 
 pub mod camera;

@@ -80,4 +80,5 @@ fn build_on_in_stack_update_system_set(system_set: SystemSet) -> SystemSet {
         .with_system(player::damage.after(GameSystem::Velocity))
         .with_system(player::invincibility)
         .with_system(ui::health)
+        .with_system(ui::score)
 }

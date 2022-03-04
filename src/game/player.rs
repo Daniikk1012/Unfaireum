@@ -4,7 +4,7 @@ use crate::GameState;
 
 use super::{
     animation::{Animation, Animations, Flippable, LoadAnimation},
-    enemy::{Enemy, Spawning},
+    enemy::{Enemy, Spawning, Score},
     entity::{GameEntity, GAME_LAYER},
     physics::{Acceleration, Body, Cleanup, Velocity, GRAVITY},
 };
@@ -232,6 +232,7 @@ pub fn invincibility(
 
 pub fn bullet(
     mut commands: Commands,
+    mut score: ResMut<Score>,
     bullet_query: Query<(Entity, &Transform, &Sprite), With<Bullet>>,
     mut enemy_query: Query<
         (Entity, &mut Enemy, &Transform, &Sprite),
@@ -256,6 +257,7 @@ pub fn bullet(
                 if enemy.health > 1 {
                     enemy.health -= 1;
                 } else {
+                    score.0 += 1;
                     commands.entity(enemy_entity).despawn();
                 }
             }
